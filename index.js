@@ -12,8 +12,17 @@ const textBodyInnerHTMLStates = ["", originalText];
 let currentStateIndex = 1;
 preTag.innerText = textBody.innerHTML;
 
-document.addEventListener("keydown", () => {
+document.addEventListener("keyup", () => {
   preTag.innerText = textBody.innerHTML;
+  if (currentStateIndex < textBodyInnerHTMLStates.length - 1) {
+    let difference = textBodyInnerHTMLStates.length - 1 - currentStateIndex;
+    for (let i = 0; i < difference; ++i) {
+      textBodyInnerHTMLStates.pop();
+    }
+  }
+  textBodyInnerHTMLStates.push(textBody.innerHTML);
+  console.log(textBodyInnerHTMLStates);
+  ++currentStateIndex;
 });
 
 underlineBtn.addEventListener("click", () => {
