@@ -40,7 +40,7 @@ textBody.addEventListener("keyup", (e) => {
     );
 
     if (
-      e.key === "Enter" ||
+      carriageReturn(e.key) ||
       !lastTwoAnchorNodesAreEqual(caretNodeLog) ||
       wroteWord(e.key) ||
       pastedOrDeletedDigits() ||
@@ -412,6 +412,10 @@ const wroteWord = (keyPressed) => {
   return keyPressed === " " && keyTypeLog[keyTypeLog.length - 2] !== " ";
 };
 
+const carriageReturn = (keyPressed) => {
+  return keyPressed === "Enter";
+};
+
 const pastedOrDeletedDigits = () => {
   try {
     return (
@@ -433,8 +437,8 @@ const textHasChanged = () => {
 };
 
 const hasChangedDirection = (carrotNodeLog) => {
-  const current = caretNodeLog[caretNodeLog.length - 1].offset;
-  const previous = caretNodeLog[caretNodeLog.length - 2].offset;
+  const current = caretNodeLog[caretNodeLog.length - 1].offSet;
+  const previous = caretNodeLog[caretNodeLog.length - 2].offSet;
 
   if (
     lastTwoAnchorNodesAreEqual(caretNodeLog) &&
