@@ -58,58 +58,23 @@ textBody.addEventListener("keyup", (e) => {
 });
 
 underlineBtn.addEventListener("click", () => {
-  try {
-    const selection = window.getSelection();
-    const selectionRange = selection.getRangeAt(0);
-    console.log(selection);
-    executeCMD(selection, selectionRange, textBody, tag.underline);
-  } catch (e) {
-    console.log(e);
-  }
+  executeCMD(tag.underline);
 });
 
 boldBtn.addEventListener("click", () => {
-  try {
-    const selection = window.getSelection();
-    const selectionRange = selection.getRangeAt(0);
-    console.log(selection);
-    executeCMD(selection, selectionRange, textBody, tag.bold);
-  } catch (e) {
-    console.log(e);
-  }
+  executeCMD(tag.bold);
 });
 
 italicBtn.addEventListener("click", () => {
-  try {
-    const selection = window.getSelection();
-    const selectionRange = selection.getRangeAt(0);
-    console.log(selection);
-    executeCMD(selection, selectionRange, textBody, tag.italic);
-  } catch (e) {
-    console.log(e);
-  }
+  executeCMD(tag.italic);
 });
 
 subBtn.addEventListener("click", () => {
-  try {
-    const selection = window.getSelection();
-    const selectionRange = selection.getRangeAt(0);
-    console.log(selection);
-    executeCMD(selection, selectionRange, textBody, tag.sub);
-  } catch (e) {
-    console.log(e);
-  }
+  executeCMD(tag.sub);
 });
 
 supBtn.addEventListener("click", () => {
-  try {
-    const selection = window.getSelection();
-    const selectionRange = selection.getRangeAt(0);
-    console.log(selection);
-    executeCMD(selection, selectionRange, textBody, tag.sup);
-  } catch (e) {
-    console.log(e);
-  }
+  executeCMD(tag.sup);
 });
 
 undoBtn.addEventListener("click", () => {
@@ -126,23 +91,43 @@ undoBtn.addEventListener("click", () => {
   } else {
     textBody.innerHTML = textBodyInnerHTMLStates[--currentStateIndex].innerHTML;
   }
-  textBody.innerText = textBodyInnerHTMLStates[currentStateIndex].innerText;
+
   console.log("statesLength =  ", textBodyInnerHTMLStates.length);
   console.log("currentStateIndex = ", currentStateIndex);
+  console.log(
+    "currentStateIndexInnerText = ",
+    textBodyInnerHTMLStates[currentStateIndex].innerText
+  );
+  console.log(
+    "currentStateIndexInnerText - 1 = ",
+    textBodyInnerHTMLStates[currentStateIndex - 1].innerText
+  );
+  console.log(
+    "currentStateIndexInnerHTML = ",
+    textBodyInnerHTMLStates[currentStateIndex].innerHTML
+  );
+  console.log(
+    "currentStateIndexInnerHTML - 1 = ",
+    textBodyInnerHTMLStates[currentStateIndex - 1].innerHTML
+  );
   preTag.innerText = textBody.innerHTML;
 });
 
 redoBtn.addEventListener("click", () => {
   if (textBodyInnerHTMLStates.length > currentStateIndex + 1) {
     textBody.innerHTML = textBodyInnerHTMLStates[++currentStateIndex].innerHTML;
-    textBody.innerText = textBodyInnerHTMLStates[currentStateIndex].innerText;
+
     console.log("statesLength =  ", textBodyInnerHTMLStates.length);
     console.log("currentStateIndex = ", currentStateIndex);
     preTag.innerText = textBody.innerHTML;
   }
 });
-const executeCMD = (selection, selectionRange, textBody, tagType) => {
+
+const executeCMD = (tagType) => {
   try {
+    const selection = window.getSelection();
+    const selectionRange = selection.getRangeAt(0);
+    console.log(selection);
     //IHO = Inner HTML Object
     const selectionIHO = getSelectionInnerHTML(
       selection,
@@ -379,8 +364,8 @@ const lastTwoAnchorNodesAreEqual = (carrotNodeLog) => {
 const pushState = () => {
   console.log("pushing");
   textBodyInnerHTMLStates.push({
-    innerText: textBody.innerText,
     innerHTML: textBody.innerHTML,
+    innerText: textBody.innerText,
   });
   ++currentStateIndex;
 
@@ -391,6 +376,14 @@ const pushState = () => {
   console.log(
     "currentStateIndexInnerText - 1 = ",
     textBodyInnerHTMLStates[currentStateIndex - 1].innerText
+  );
+  console.log(
+    "currentStateIndexInnerHTML = ",
+    textBodyInnerHTMLStates[currentStateIndex].innerHTML
+  );
+  console.log(
+    "currentStateIndexInnerHTML - 1 = ",
+    textBodyInnerHTMLStates[currentStateIndex - 1].innerHTML
   );
 };
 
