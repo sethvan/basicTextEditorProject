@@ -7,22 +7,54 @@ const subBtn = document.querySelector("#sub-text");
 const supBtn = document.querySelector("#sup-text");
 const undoBtn = document.querySelector("#undo");
 const redoBtn = document.querySelector("#redo");
-const originalText = textBody.innerHTML;
-const textBodyInnerHTMLStates = ["", originalText];
+
+const textBodyInnerHTMLStates = [
+  {
+    innerHTML: textBody.innerHTML,
+    innerText: textBody.innerText,
+  },
+  {
+    innerHTML: textBody.innerHTML,
+    innerText: textBody.innerText,
+  },
+];
 let currentStateIndex = 1;
 preTag.innerText = textBody.innerHTML;
+let trend = true; //false = downwards trend and true = upwards trend
+let lengthIncrement = true; //false = downwards increment and true = upwards increment
+const keyTypeLog = [""];
+const caretNodeLog = [{}];
 
-document.addEventListener("keyup", () => {
-  preTag.innerText = textBody.innerHTML;
-  if (currentStateIndex < textBodyInnerHTMLStates.length - 1) {
-    let difference = textBodyInnerHTMLStates.length - 1 - currentStateIndex;
-    for (let i = 0; i < difference; ++i) {
-      textBodyInnerHTMLStates.pop();
-    }
+textBody.addEventListener("keyup", (e) => {
+  if (textHasChanged()) {
+    keyTypeLog.push(e.key);
+    caretNodeLog.push(getCaretNode());
+    console.log("anchor equal = ", lastTwoAnchorNodesAreEqual(caretNodeLog));
+    console.log("Caret log = ", caretNodeLog);
+    console.log("keyTypeLog = ", keyTypeLog);
+    console.log("Wrote word = ", wroteWord(e.key));
+    console.log("pasted/deleted = ", pastedOrDeletedDigits());
+    console.log(
+      "textBodyInnerHTMLStates[currentStateIndex] = ",
+      textBodyInnerHTMLStates[currentStateIndex]
+    );
+
+    if (
+      e.key === "Enter" ||
+      !lastTwoAnchorNodesAreEqual(caretNodeLog) ||
+      wroteWord(e.key) ||
+      pastedOrDeletedDigits() ||
+      hasChangedDirection(caretNodeLog)
+    ) {
+      if (currentStateIndex < textBodyInnerHTMLStates.length - 1) {
+        let difference = textBodyInnerHTMLStates.length - 1 - currentStateIndex;
+        for (let i = 0; i < difference; ++i) {
+          textBodyInnerHTMLStates.pop();
+        }
+      }
+      pushState();
+    } else updateCurrentState();
   }
-  textBodyInnerHTMLStates.push(textBody.innerHTML);
-  console.log(textBodyInnerHTMLStates);
-  ++currentStateIndex;
 });
 
 underlineBtn.addEventListener("click", () => {
@@ -81,20 +113,37 @@ supBtn.addEventListener("click", () => {
 });
 
 undoBtn.addEventListener("click", () => {
-  if (currentStateIndex > 1) {
-    textBody.innerHTML = textBodyInnerHTMLStates[--currentStateIndex];
-    preTag.innerText = textBody.innerHTML;
+  if (currentStateIndex === 1) {
+    if (
+      textBodyInnerHTMLStates[currentStateIndex].innerHTML === "" &&
+      textBodyInnerHTMLStates[currentStateIndex].innerText === ""
+    )
+      return;
+    else {
+      textBodyInnerHTMLStates.unshift({ innerText: "", innerHTML: "" });
+      textBody.innerHTML = textBodyInnerHTMLStates[currentStateIndex].innerHTML;
+    }
+  } else {
+    textBody.innerHTML = textBodyInnerHTMLStates[--currentStateIndex].innerHTML;
   }
+  textBody.innerText = textBodyInnerHTMLStates[currentStateIndex].innerText;
+  console.log("statesLength =  ", textBodyInnerHTMLStates.length);
+  console.log("currentStateIndex = ", currentStateIndex);
+  preTag.innerText = textBody.innerHTML;
 });
 
 redoBtn.addEventListener("click", () => {
   if (textBodyInnerHTMLStates.length > currentStateIndex + 1) {
-    textBody.innerHTML = textBodyInnerHTMLStates[++currentStateIndex];
+    textBody.innerHTML = textBodyInnerHTMLStates[++currentStateIndex].innerHTML;
+    textBody.innerText = textBodyInnerHTMLStates[currentStateIndex].innerText;
+    console.log("statesLength =  ", textBodyInnerHTMLStates.length);
+    console.log("currentStateIndex = ", currentStateIndex);
     preTag.innerText = textBody.innerHTML;
   }
 });
 const executeCMD = (selection, selectionRange, textBody, tagType) => {
   try {
+    //IHO = Inner HTML Object
     const selectionIHO = getSelectionInnerHTML(
       selection,
       selectionRange,
@@ -117,9 +166,8 @@ const executeCMD = (selection, selectionRange, textBody, tagType) => {
         textBodyInnerHTMLStates.pop();
       }
     }
-    textBodyInnerHTMLStates.push(textBody.innerHTML);
-    console.log(textBodyInnerHTMLStates);
-    ++currentStateIndex;
+
+    pushState();
 
     preTag.innerText = textBody.innerHTML;
     window.getSelection().removeAllRanges();
@@ -307,4 +355,99 @@ const getNewInnerHTML = (selectionIHO, textBody, tagType) => {
     selectionIHO.innerHTML = removeTags(selectionIHO.innerHTML, tagType);
     return `${tagType.startTag}${selectionIHO.innerHTML}${tagType.endTag}`;
   }
+};
+
+const getCaretNode = () => {
+  const selection = window.getSelection();
+  return {
+    anchorNode: selection.anchorNode,
+    offSet: selection.anchorOffset,
+  };
+};
+
+const lastTwoAnchorNodesAreEqual = (carrotNodeLog) => {
+  if (textBody.innerText.length) {
+    if (textBody.innerText.length > 1) {
+      return (
+        caretNodeLog[caretNodeLog.length - 1].anchorNode ===
+        caretNodeLog[caretNodeLog.length - 2].anchorNode
+      );
+    } else return true;
+  } else return true;
+};
+
+const pushState = () => {
+  console.log("pushing");
+  textBodyInnerHTMLStates.push({
+    innerText: textBody.innerText,
+    innerHTML: textBody.innerHTML,
+  });
+  ++currentStateIndex;
+
+  console.log(
+    "currentStateIndexInnerText = ",
+    textBodyInnerHTMLStates[currentStateIndex].innerText
+  );
+  console.log(
+    "currentStateIndexInnerText - 1 = ",
+    textBodyInnerHTMLStates[currentStateIndex - 1].innerText
+  );
+};
+
+const updateCurrentState = () => {
+  console.log("not pushing");
+  textBodyInnerHTMLStates[currentStateIndex].innerHTML = textBody.innerHTML;
+  textBodyInnerHTMLStates[currentStateIndex].innerText = textBody.innerText;
+  console.log(
+    "currentStateIndexInnerText = ",
+    textBodyInnerHTMLStates[currentStateIndex].innerText
+  );
+  console.log(
+    "currentStateIndexInnerText - 1 = ",
+    textBodyInnerHTMLStates[currentStateIndex - 1].innerText
+  );
+};
+
+const wroteWord = (keyPressed) => {
+  return keyPressed === " " && keyTypeLog[keyTypeLog.length - 2] !== " ";
+};
+
+const pastedOrDeletedDigits = () => {
+  try {
+    return (
+      Math.abs(
+        textBody.innerText.length -
+          textBodyInnerHTMLStates[currentStateIndex].innerText.length
+      ) > 1
+    );
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+const textHasChanged = () => {
+  return (
+    textBody.innerText !==
+    textBodyInnerHTMLStates[currentStateIndex - 1].innerText
+  );
+};
+
+const hasChangedDirection = (carrotNodeLog) => {
+  const current = caretNodeLog[caretNodeLog.length - 1].offset;
+  const previous = caretNodeLog[caretNodeLog.length - 2].offset;
+
+  if (
+    lastTwoAnchorNodesAreEqual(caretNodeLog) &&
+    Math.abs(current - previous) === 1
+  ) {
+    if (current > previous) lengthIncrement = true;
+    else lengthIncrement = false;
+    if (trend !== lengthIncrement) {
+      console.log("marking direction change");
+      trend = lengthIncrement;
+      return true;
+    } else console.log("marking no direction change1");
+    return false;
+  } else console.log("marking no direction change2");
+  return false;
 };

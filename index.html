@@ -4,37 +4,43 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Make Bold</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
+      integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="/app.css" />
+    <title>Basic Text Editor Project</title>
   </head>
   <body>
-    <h2>Highlight Selection and Click a Button</h2>
-    <input type="button" id="bold-text" value="Bold" />
-    <input type="button" id="underline-text" value="Underline" />
-    <input type="button" id="italic-text" value="Italic" />
-    <input type="button" id="sub-text" value="Sub" />
-    <input type="button" id="sup-text" value="Sup" />
-    <input type="button" id="undo" value="Undo" />
-    <input type="button" id="redo" value="Redo" />
-    <hr />
-    <div id="text-body" contenteditable="true">
-      But, in a larger sense, we can not dedicate—we can not consecrate—we can
-      not hallow—this ground. The brave men, living and dead, who struggled
-      here, have consecrated it, far above our poor power to add or detract. The
-      world will little note, nor long remember what we say here, but it can
-      never forget what they did here. It is for us the living, rather, to be
-      dedicated here to the unfinished work which they who fought here have thus
-      far so nobly advanced. It is rather for us to be here dedicated to the
-      great task remaining before us—that from these honored dead we take
-      increased devotion to that cause for which they gave the last full measure
-      of devotion—that we here highly resolve that these dead shall not have
-      died in vain—that this nation, under God, shall have a new birth of
-      freedom—and that government of the people, by the people, for the people,
-      shall not perish from the earth.
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <h2>Basic Text Editor Project</h2>
+        <input type="button" id="bold-text" value="Bold" />
+        <input type="button" id="underline-text" value="Underline" />
+        <input type="button" id="italic-text" value="Italic" />
+        <input type="button" id="sub-text" value="Sub" />
+        <input type="button" id="sup-text" value="Sup" />
+        <input type="button" id="undo" value="Undo" />
+        <input type="button" id="redo" value="Redo" />
+        <div id="text-body" contenteditable="true"></div>
+        <hr />
+        <h3>View of innerHTML of text</h3>
+        <pre id="pre-tag"></pre>
+      </div>
     </div>
-    <hr />
-    <h3>View of innerHTML of text</h3>
-    <pre id="pre-tag"></pre>
 
+    <script
+      src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+      integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.min.js"
+      integrity="sha384-oesi62hOLfzrys4LxRF63OJCXdXDipiYWBnvTl9Y9/TRlw5xlKIEHpNyvvDShgf/"
+      crossorigin="anonymous"
+    ></script>
     <script src="index.js"></script>
   </body>
 </html>

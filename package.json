@@ -1,0 +1,23 @@
+{
+  "name": "basictexteditorproject",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sethvan/basicTextEditorProject.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sethvan/basicTextEditorProject/issues"
+  },
+  "homepage": "https://github.com/sethvan/basicTextEditorProject#readme",
+  "dependencies": {
+    "sanitize-html": "^2.6.0"
+  }
+}
