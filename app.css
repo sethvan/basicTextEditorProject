@@ -7,3 +7,21 @@
   border: 0.5px solid black;
   margin-top: 2px;
 }
+
+#pre-tag {
+   
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 30px;
+    padding-bottom: 30px;
+    height: 300px;
+    border: 0.5px solid black;
+    margin-top: 2px;
+    overflow-x: auto;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+  }
+}
