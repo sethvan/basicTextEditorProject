@@ -94,6 +94,7 @@ redoBtn.addEventListener("click", () => {
 const executeCMD = (tagType) => {
   try {
     const selection = window.getSelection();
+    console.log(selection);
     const selectionRange = selection.getRangeAt(0);
     //IHO = Inner HTML Object
     const selectionIHO = getSelectionInnerHTML(
@@ -131,10 +132,7 @@ const executeCMD = (tagType) => {
 const getSelectionInnerHTML = (selection, selectionRange, textBody) => {
   try {
     const myDelimiter = `~${Math.floor(Math.random() * 1000000000000000)}`;
-    const newNode = document
-      .createRange()
-      .createContextualFragment(myDelimiter);
-    selectionRange.insertNode(newNode);
+
     const rangeToPlaceEnd = document.createRange();
     rangeToPlaceEnd.setStart(selection.focusNode, selection.focusOffset);
     rangeToPlaceEnd.setEnd(selection.focusNode, selection.focusOffset);
@@ -142,6 +140,11 @@ const getSelectionInnerHTML = (selection, selectionRange, textBody) => {
       .createRange()
       .createContextualFragment(myDelimiter);
     rangeToPlaceEnd.insertNode(endNode);
+
+    const newNode = document
+      .createRange()
+      .createContextualFragment(myDelimiter);
+    selectionRange.insertNode(newNode);
 
     const textBodyHTML = textBody.innerHTML.toString();
 
@@ -284,6 +287,12 @@ const getNewInnerHTML = (selectionIHO, textBody, tagType) => {
   ) {
     selectionIHO.innerHTML = removeTags(selectionIHO.innerHTML, tagType);
     return `${tagType.startTag}${selectionIHO.innerHTML}`;
+  } else if (
+    firstInnerTag.startOrEndTag === tagType.endTag &&
+    lastInnerTag.startOrEndTag === tagType.startTag
+  ) {
+    selectionIHO.innerHTML = removeTags(selectionIHO.innerHTML, tagType);
+    return `${selectionIHO.innerHTML}`;
   } else {
     selectionIHO.innerHTML = removeTags(selectionIHO.innerHTML, tagType);
     return `${tagType.startTag}${selectionIHO.innerHTML}${tagType.endTag}`;
@@ -349,14 +358,13 @@ const pastedOrDeletedDigits = () => {
   try {
     //for firefox
     if (textBody.innerHTML.toString().slice(-4) === `<br>`) {
-      console.log("firing1");
       return (
         Math.abs(
           textBody.innerText.toString().length -
             textBodyInnerHTMLStates[currentStateIndex].innerText.length
         ) > 2
       );
-    } else console.log("firing2");
+    }
     return (
       Math.abs(
         textBody.innerText.toString().length -
@@ -386,11 +394,8 @@ const hasChangedDirection = (carrotNodeLog) => {
     if (current > previous) lengthIncrement = true;
     else lengthIncrement = false;
     if (trend !== lengthIncrement) {
-      console.log("marking direction change");
       trend = lengthIncrement;
       return true;
-    } else console.log("marking no direction change1");
-    return false;
-  } else console.log("marking no direction change2");
-  return false;
+    } else return false;
+  } else return false;
 };
