@@ -7,7 +7,7 @@ const subBtn = document.querySelector("#sub-text");
 const supBtn = document.querySelector("#sup-text");
 const undoBtn = document.querySelector("#undo");
 const redoBtn = document.querySelector("#redo");
-
+const textBodySelection = document.createRange();
 const textBodyInnerHTMLStates = [
   {
     innerHTML: textBody.innerHTML,
@@ -25,7 +25,7 @@ let lengthIncrement = true; //false = downwards increment and true = upwards inc
 const keyTypeLog = [""];
 const caretNodeLog = [{}];
 
-textBody.addEventListener("keyup", (e) => {
+textBody.addEventListener("keyup", async (e) => {
   if (textHasChanged()) {
     keyTypeLog.push(e.key);
     caretNodeLog.push(getCaretNode());
@@ -93,7 +93,13 @@ redoBtn.addEventListener("click", () => {
 
 const executeCMD = (tagType) => {
   try {
-    const selection = window.getSelection();
+    const selection = document.getSelection();
+    if (
+      !selection ||
+      !textBody.contains(selection.anchorNode) ||
+      selection.toString().length === 0
+    )
+      return;
     console.log(selection);
     const selectionRange = selection.getRangeAt(0);
     //IHO = Inner HTML Object
@@ -123,7 +129,7 @@ const executeCMD = (tagType) => {
     pushState();
 
     preTag.innerText = textBody.innerHTML;
-    window.getSelection().removeAllRanges();
+    document.getSelection().removeAllRanges();
   } catch (e) {
     console.log(e);
   }
