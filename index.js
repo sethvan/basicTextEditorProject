@@ -29,16 +29,6 @@ textBody.addEventListener("keyup", (e) => {
   if (textHasChanged()) {
     keyTypeLog.push(e.key);
     caretNodeLog.push(getCaretNode());
-    console.log("anchor equal = ", lastTwoAnchorNodesAreEqual(caretNodeLog));
-    console.log("Caret log = ", caretNodeLog);
-    console.log("keyTypeLog = ", keyTypeLog);
-    console.log("Wrote word = ", wroteWord(e.key));
-    console.log("pasted/deleted = ", pastedOrDeletedDigits());
-    console.log(
-      "textBodyInnerHTMLStates[currentStateIndex] = ",
-      textBodyInnerHTMLStates[currentStateIndex]
-    );
-
     if (
       carriageReturn(e.key) ||
       !lastTwoAnchorNodesAreEqual(caretNodeLog) ||
@@ -91,34 +81,12 @@ undoBtn.addEventListener("click", () => {
   } else {
     textBody.innerHTML = textBodyInnerHTMLStates[--currentStateIndex].innerHTML;
   }
-
-  console.log("statesLength =  ", textBodyInnerHTMLStates.length);
-  console.log("currentStateIndex = ", currentStateIndex);
-  console.log(
-    "currentStateIndexInnerText = ",
-    textBodyInnerHTMLStates[currentStateIndex].innerText
-  );
-  console.log(
-    "currentStateIndexInnerText - 1 = ",
-    textBodyInnerHTMLStates[currentStateIndex - 1].innerText
-  );
-  console.log(
-    "currentStateIndexInnerHTML = ",
-    textBodyInnerHTMLStates[currentStateIndex].innerHTML
-  );
-  console.log(
-    "currentStateIndexInnerHTML - 1 = ",
-    textBodyInnerHTMLStates[currentStateIndex - 1].innerHTML
-  );
   preTag.innerText = textBody.innerHTML;
 });
 
 redoBtn.addEventListener("click", () => {
   if (textBodyInnerHTMLStates.length > currentStateIndex + 1) {
     textBody.innerHTML = textBodyInnerHTMLStates[++currentStateIndex].innerHTML;
-
-    console.log("statesLength =  ", textBodyInnerHTMLStates.length);
-    console.log("currentStateIndex = ", currentStateIndex);
     preTag.innerText = textBody.innerHTML;
   }
 });
@@ -127,7 +95,6 @@ const executeCMD = (tagType) => {
   try {
     const selection = window.getSelection();
     const selectionRange = selection.getRangeAt(0);
-    console.log(selection);
     //IHO = Inner HTML Object
     const selectionIHO = getSelectionInnerHTML(
       selection,
@@ -268,14 +235,7 @@ const removeTags = (str, tagType) => {
 
 const getNewInnerHTML = (selectionIHO, textBody, tagType) => {
   const tagIndexes = indexTags(textBody.innerHTML, tagType);
-  console.log("tag indexes = ", tagIndexes);
 
-  console.log("InnerHTML = ", selectionIHO.innerHTML);
-  console.log("selectionIHO.index = ", selectionIHO.index);
-  console.log(
-    "selectionIHO.index + selectionIHO.innerHTML.length = ",
-    selectionIHO.index + selectionIHO.innerHTML.length
-  );
   let closestAnteriorTag = {};
   let closestPosteriorTag = {};
   if (tagIndexes.length) {
@@ -302,18 +262,6 @@ const getNewInnerHTML = (selectionIHO, textBody, tagType) => {
     firstInnerTag = innerTagIndexes[0];
     lastInnerTag = innerTagIndexes[innerTagIndexes.length - 1];
   }
-
-  console.log(
-    "firstInnerTag = ",
-    firstInnerTag,
-    "closestAnteriorTag = ",
-    closestAnteriorTag,
-    "lastInnerTag = ",
-    lastInnerTag,
-    "closestPosteriorTag = ",
-    closestPosteriorTag
-  );
-
   if (
     !firstInnerTag.startOrEndTag &&
     !lastInnerTag.startOrEndTag &&
@@ -368,41 +316,29 @@ const pushState = () => {
     innerText: textBody.innerText,
   });
   ++currentStateIndex;
-
-  console.log(
-    "currentStateIndexInnerText = ",
-    textBodyInnerHTMLStates[currentStateIndex].innerText
-  );
-  console.log(
-    "currentStateIndexInnerText - 1 = ",
-    textBodyInnerHTMLStates[currentStateIndex - 1].innerText
-  );
-  console.log(
-    "currentStateIndexInnerHTML = ",
-    textBodyInnerHTMLStates[currentStateIndex].innerHTML
-  );
-  console.log(
-    "currentStateIndexInnerHTML - 1 = ",
-    textBodyInnerHTMLStates[currentStateIndex - 1].innerHTML
-  );
 };
 
 const updateCurrentState = () => {
   console.log("not pushing");
   textBodyInnerHTMLStates[currentStateIndex].innerHTML = textBody.innerHTML;
   textBodyInnerHTMLStates[currentStateIndex].innerText = textBody.innerText;
-  console.log(
-    "currentStateIndexInnerText = ",
-    textBodyInnerHTMLStates[currentStateIndex].innerText
-  );
-  console.log(
-    "currentStateIndexInnerText - 1 = ",
-    textBodyInnerHTMLStates[currentStateIndex - 1].innerText
-  );
 };
 
 const wroteWord = (keyPressed) => {
-  return keyPressed === " " && keyTypeLog[keyTypeLog.length - 2] !== " ";
+  if (keyPressed === " " && keyTypeLog[keyTypeLog.length - 2] !== " ")
+    return true;
+  else {
+    const current = caretNodeLog[caretNodeLog.length - 1].offSet;
+    const previous = caretNodeLog[caretNodeLog.length - 2].offSet;
+
+    if (
+      textBodyInnerHTMLStates[currentStateIndex].innerText.length > 1 &&
+      lastTwoAnchorNodesAreEqual(caretNodeLog) &&
+      Math.abs(current - previous) !== 1
+    )
+      return true;
+    else return false;
+  }
 };
 
 const carriageReturn = (keyPressed) => {
@@ -411,9 +347,19 @@ const carriageReturn = (keyPressed) => {
 
 const pastedOrDeletedDigits = () => {
   try {
+    //for firefox
+    if (textBody.innerHTML.toString().slice(-4) === `<br>`) {
+      console.log("firing1");
+      return (
+        Math.abs(
+          textBody.innerText.toString().length -
+            textBodyInnerHTMLStates[currentStateIndex].innerText.length
+        ) > 2
+      );
+    } else console.log("firing2");
     return (
       Math.abs(
-        textBody.innerText.length -
+        textBody.innerText.toString().length -
           textBodyInnerHTMLStates[currentStateIndex].innerText.length
       ) > 1
     );
