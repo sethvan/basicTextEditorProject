@@ -44,6 +44,7 @@ textBody.addEventListener("keyup", async (e) => {
       }
       pushState();
     } else updateCurrentState();
+    preTag.innerText = textBody.innerHTML;
   }
 });
 
@@ -81,6 +82,7 @@ undoBtn.addEventListener("click", () => {
   } else {
     textBody.innerHTML = textBodyInnerHTMLStates[--currentStateIndex].innerHTML;
   }
+  undoBtn.onClick;
   preTag.innerText = textBody.innerHTML;
 });
 
