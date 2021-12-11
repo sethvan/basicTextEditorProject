@@ -25,7 +25,7 @@ let lengthIncrement = true; //false = downwards increment and true = upwards inc
 const keyTypeLog = [""];
 const caretNodeLog = [{}];
 
-textBody.addEventListener("keyup", async (e) => {
+textBody.addEventListener("keyup", (e) => {
   if (textHasChanged()) {
     keyTypeLog.push(e.key);
     caretNodeLog.push(getCaretNode());
@@ -82,7 +82,7 @@ undoBtn.addEventListener("click", () => {
   } else {
     textBody.innerHTML = textBodyInnerHTMLStates[--currentStateIndex].innerHTML;
   }
-  undoBtn.onClick;
+
   preTag.innerText = textBody.innerHTML;
 });
 
