@@ -339,6 +339,8 @@ const getNewInnerHTML = (selectionIHO, textBody, tagType) => {
   }
 
   if (
+    !firstInnerTag.startOrEndTag &&
+    !lastInnerTag.startOrEndTag &&
     closestAnteriorTag.startOrEndTag === tagType.startTag &&
     closestPosteriorTag.startOrEndTag === tagType.endTag
   ) {
@@ -358,12 +360,6 @@ const getNewInnerHTML = (selectionIHO, textBody, tagType) => {
   ) {
     selectionIHO.innerHTML = removeTags(selectionIHO.innerHTML, tagType);
     return `${tagType.startTag}${selectionIHO.innerHTML}`;
-  } else if (
-    firstInnerTag.startOrEndTag === tagType.endTag &&
-    lastInnerTag.startOrEndTag === tagType.startTag
-  ) {
-    selectionIHO.innerHTML = removeTags(selectionIHO.innerHTML, tagType);
-    return `${selectionIHO.innerHTML}`;
   } else {
     selectionIHO.innerHTML = removeTags(selectionIHO.innerHTML, tagType);
     return `${tagType.startTag}${selectionIHO.innerHTML}${tagType.endTag}`;
