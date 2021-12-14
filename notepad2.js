@@ -7,7 +7,7 @@ const subBtn = document.querySelector("#sub-text");
 const supBtn = document.querySelector("#sup-text");
 const undoBtn = document.querySelector("#undo");
 const redoBtn = document.querySelector("#redo");
-
+const textBodySelection = document.createRange();
 const textBodyInnerHTMLStates = [
   {
     innerHTML: textBody.innerHTML,
@@ -23,37 +23,17 @@ preTag.innerText = textBody.innerHTML;
 let trend = true; //false = downwards trend and true = upwards trend
 let lengthIncrement = true; //false = downwards increment and true = upwards increment
 const keyTypeLog = [""];
-const userInputLog = [{ type: "key" }];
 const caretNodeLog = [{}];
 
 textBody.addEventListener("keyup", (e) => {
-  //console.log("Caret index = ", getCaretIndex());
   if (textHasChanged()) {
-    if (userInputLog[userInputLog.length - 1].type === "click") {
-      let i = 1;
-      while (userInputLog[userInputLog.length - i].type === "click") {
-        let { clickType, index } = userInputLog[userInputLog.length - i++];
-        if (index === getCaretIndex() - 1) {
-          executeCMD(clickType, true);
-        }
-      }
-      userInputLog.push({
-        type: "key",
-        keyType: `${e.key}`,
-      });
-      caretNodeLog.push(getCaretNode());
-      return;
-    }
-    userInputLog.push({
-      type: "key",
-      keyType: `${e.key}`,
-    });
+    keyTypeLog.push(e.key);
     caretNodeLog.push(getCaretNode());
     if (
       carriageReturn(e.key) ||
       !lastTwoAnchorNodesAreEqual(caretNodeLog) ||
       wroteWord(e.key) ||
-      pastedOrDeletedDigits(e.key) ||
+      pastedOrDeletedDigits() ||
       hasChangedDirection(caretNodeLog)
     ) {
       if (currentStateIndex < textBodyInnerHTMLStates.length - 1) {
@@ -69,23 +49,23 @@ textBody.addEventListener("keyup", (e) => {
 });
 
 underlineBtn.addEventListener("click", () => {
-  executeCMD(tag.underline, false);
+  executeCMD(tag.underline);
 });
 
 boldBtn.addEventListener("click", () => {
-  executeCMD(tag.bold, false);
+  executeCMD(tag.bold);
 });
 
 italicBtn.addEventListener("click", () => {
-  executeCMD(tag.italic, false);
+  executeCMD(tag.italic);
 });
 
 subBtn.addEventListener("click", () => {
-  executeCMD(tag.sub, false);
+  executeCMD(tag.sub);
 });
 
 supBtn.addEventListener("click", () => {
-  executeCMD(tag.sup, false);
+  executeCMD(tag.sup);
 });
 
 undoBtn.addEventListener("click", () => {
@@ -113,37 +93,33 @@ redoBtn.addEventListener("click", () => {
   }
 });
 
-const executeCMD = (tagType, isSingleChar) => {
+const executeCMD = (tagType) => {
   try {
     const selection = document.getSelection();
-    if (isSingleChar) {
-      selection.setBaseAndExtent(
-        selection.anchorNode,
-        selection.anchorOffset - 1,
-        selection.focusNode,
-        selection.focusOffset
-      );
-    }
-    if (!textBody.contains(selection.anchorNode)) return;
-    const selectionString = selection.toString();
+    if (!selection || !textBody.contains(selection.anchorNode)) return;
+
+    console.log(selection);
     const selectionRange = selection.getRangeAt(0);
     //IHO = Inner HTML Object
     const selectionIHO = getSelectionInnerHTML(
       selection,
       selectionRange,
-      textBody,
-      tagType
+      textBody
     );
-    if (!selectionString) {
-      const { caretIndex } = selectionIHO;
-      SetCaretPosition(textBody, caretIndex);
+    console.log(selectionIHO);
+    if (!selection.toString().length) {
+      // const { caretIndex } = selectionIHO;
+      // SetCaretPosition(textBody, caretIndex);
       return;
     }
+
     const newSelectionInnerHTML = getNewInnerHTML(
       selectionIHO,
       textBody,
       tagType
     );
+
+    console.log(`new selection = ${newSelectionInnerHTML}`);
 
     textBody.innerHTML =
       selectionIHO.anteriorHTML +
@@ -158,7 +134,7 @@ const executeCMD = (tagType, isSingleChar) => {
     }
 
     pushState();
-    SetCaretPosition(textBody, selectionIHO.caretIndex);
+    //SetCaretPosition(textBody, selectionIHO.caretIndex);
     preTag.innerText = textBody.innerHTML;
     //document.getSelection().removeAllRanges();
   } catch (e) {
@@ -166,14 +142,8 @@ const executeCMD = (tagType, isSingleChar) => {
   }
 };
 
-const getSelectionInnerHTML = (
-  selection,
-  selectionRange,
-  textBody,
-  tagType
-) => {
+const getSelectionInnerHTML = (selection, selectionRange, textBody) => {
   try {
-    const selectionString = selection.toString();
     const myDelimiter = `~${Math.floor(Math.random() * 1000000000000000)}`;
 
     const rangeToPlaceEnd = document.createRange();
@@ -191,13 +161,15 @@ const getSelectionInnerHTML = (
 
     const textBodyHTML = textBody.innerHTML.toString();
 
-    if (selectionString) {
+    if (selection.toString().length) {
       const [anteriorHTML, innerHTML, posteriorHTML] =
         textBodyHTML.split(myDelimiter);
-      selectionRange.setStart(textBody, 0);
-      const caretIndex = selectionRange.toString().length - myDelimiter.length;
+      // selectionRange.setStart(textBody, 0);
+      // const caretIndex = selectionRange.toString().length;
+      // console.log("caretIndex = ", caretIndex);
       const index = anteriorHTML.length;
       const posteriorIndex = index + innerHTML.length;
+
       textBody.innerHTML = textBodyHTML.replaceAll(myDelimiter, "");
 
       return {
@@ -206,24 +178,11 @@ const getSelectionInnerHTML = (
         posteriorHTML,
         posteriorIndex,
         anteriorHTML,
-        caretIndex,
       };
     } else {
-      selectionRange.setStart(textBody, 0);
-      const caretIndex = selectionRange.toString().length - myDelimiter.length;
+      const caretIndex = textBody.innerHTML.indexOf(myDelimiter);
+      console.log("caretIndex = ", caretIndex);
       textBody.innerHTML = textBodyHTML.replaceAll(myDelimiter, "");
-      if (
-        userInputLog[userInputLog.length - 1].type === "click" &&
-        userInputLog[userInputLog.length - 1].clickType === tagType
-      ) {
-        userInputLog.pop();
-      } else {
-        userInputLog.push({
-          type: "click",
-          clickType: tagType,
-          index: caretIndex,
-        });
-      }
       return { caretIndex };
     }
   } catch (e) {
@@ -330,6 +289,17 @@ const getNewInnerHTML = (selectionIHO, textBody, tagType) => {
     lastInnerTag = innerTagIndexes[innerTagIndexes.length - 1];
   }
 
+  console.log(
+    "firstInnerTag = ",
+    firstInnerTag,
+    "closestAnteriorTag = ",
+    closestAnteriorTag,
+    "lastInnerTag = ",
+    lastInnerTag,
+    "closestPosteriorTag = ",
+    closestPosteriorTag
+  );
+
   if (
     closestAnteriorTag.startOrEndTag === tagType.startTag &&
     closestPosteriorTag.startOrEndTag === tagType.endTag
@@ -372,7 +342,7 @@ const getCaretNode = () => {
 
 const lastTwoAnchorNodesAreEqual = (carrotNodeLog) => {
   if (textBody.innerText.length) {
-    if (textBody.innerText.length > 2) {
+    if (textBody.innerText.length > 1) {
       return (
         caretNodeLog[caretNodeLog.length - 1].anchorNode ===
         caretNodeLog[caretNodeLog.length - 2].anchorNode
@@ -397,29 +367,43 @@ const updateCurrentState = () => {
 };
 
 const wroteWord = (keyPressed) => {
-  return keyPressed === " " && keyTypeLog[keyTypeLog.length - 2] !== " ";
+  if (keyPressed === " " && keyTypeLog[keyTypeLog.length - 2] !== " ")
+    return true;
+  else {
+    const current = caretNodeLog[caretNodeLog.length - 1].offSet;
+    const previous = caretNodeLog[caretNodeLog.length - 2].offSet;
+
+    if (
+      textBodyInnerHTMLStates[currentStateIndex].innerText.length > 1 &&
+      lastTwoAnchorNodesAreEqual(caretNodeLog) &&
+      Math.abs(current - previous) !== 1
+    )
+      return true;
+    else return false;
+  }
 };
 
 const carriageReturn = (keyPressed) => {
   return keyPressed === "Enter";
 };
 
-const pastedOrDeletedDigits = (key) => {
+const pastedOrDeletedDigits = () => {
   try {
-    switch (key) {
-      case "Delete":
-        return true;
-      case "Cut":
-        return true;
-      case "Insert":
-        return true;
-      case "Paste":
-        return true;
-      case "Clear":
-        return true;
-      default:
-        return false;
+    //for firefox
+    if (textBody.innerHTML.toString().slice(-4) === `<br>`) {
+      return (
+        Math.abs(
+          textBody.innerText.toString().length -
+            textBodyInnerHTMLStates[currentStateIndex].innerText.length
+        ) > 2
+      );
     }
+    return (
+      Math.abs(
+        textBody.innerText.toString().length -
+          textBodyInnerHTMLStates[currentStateIndex].innerText.length
+      ) > 1
+    );
   } catch (e) {
     console.log(e);
   }
@@ -452,9 +436,6 @@ const hasChangedDirection = (carrotNodeLog) => {
 //below setcaretposition function taken from https://exceptionshub.com/set-caret-position-in-contenteditable-div-that-has-children.html
 // Move caret to a specific point in a DOM element
 function SetCaretPosition(el, pos) {
-  if (pos === 0) {
-    return textBody.focus();
-  }
   // Loop through all child nodes
   for (let node of el.childNodes) {
     if (node.nodeType == 3) {
@@ -481,11 +462,10 @@ function SetCaretPosition(el, pos) {
   return pos; // needed because of recursion stuff
 }
 
-const getCaretIndex = () => {
-  selection = document.getSelection();
-  selectionRange = selection.getRangeAt(0);
-  selectionRange.setStart(textBody, 0);
-  index = selectionRange.toString().length;
-  selection.collapseToEnd();
-  return index;
-};
+
+const userInput = {
+  type: "key" {
+    keyType: "keyType", 
+  }
+
+}
