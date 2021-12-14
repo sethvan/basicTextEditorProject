@@ -157,7 +157,15 @@ const executeCMD = (tagType, isSingleChar) => {
       }
     }
 
-    pushState();
+    if (
+      isSingleChar &&
+      userInputLog[userInputLog.length - 2].type === "click"
+    ) {
+      updateCurrentState();
+    } else {
+      pushState();
+    }
+
     SetCaretPosition(textBody, selectionIHO.caretIndex);
     preTag.innerText = textBody.innerHTML;
     //document.getSelection().removeAllRanges();
