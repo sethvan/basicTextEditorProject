@@ -43,8 +43,6 @@ textBody.addEventListener("keyup", (e) => {
     textBody.setAttribute("contenteditable", "true");
     useSpan = false;
   }
-  console.log("spanNumber = ", spanNumber, "useSpan = ", useSpan);
-  //console.log("Caret index = ", getCaretIndex());
   if (textHasChanged()) {
     userInputLog.push({
       type: "key",
@@ -76,27 +74,22 @@ textBody.addEventListener("keyup", (e) => {
 
 underlineBtn.addEventListener("click", () => {
   executeCMD(tag.underline);
-  console.log("spanNumber = ", spanNumber, "useSpan = ", useSpan);
 });
 
 boldBtn.addEventListener("click", () => {
   executeCMD(tag.bold);
-  console.log("spanNumber = ", spanNumber, "useSpan = ", useSpan);
 });
 
 italicBtn.addEventListener("click", () => {
   executeCMD(tag.italic);
-  console.log("spanNumber = ", spanNumber, "useSpan = ", useSpan);
 });
 
 subBtn.addEventListener("click", () => {
   executeCMD(tag.sub);
-  console.log("spanNumber = ", spanNumber, "useSpan = ", useSpan);
 });
 
 supBtn.addEventListener("click", () => {
   executeCMD(tag.sup);
-  console.log("spanNumber = ", spanNumber, "useSpan = ", useSpan);
 });
 
 undoBtn.addEventListener("click", () => {
@@ -123,7 +116,6 @@ undoBtn.addEventListener("click", () => {
   } else {
     textBody.innerHTML = textBodyInnerHTMLStates[--currentStateIndex].innerHTML;
     if (useSpan) {
-      console.log("in undo useSpan");
       textBody.setAttribute("contenteditable", "true");
       useSpan = false;
     }
@@ -190,7 +182,6 @@ const executeCMD = (tagType) => {
     }
 
     if (useSpan) {
-      console.log("inside useSpan");
       const spanList = document.querySelectorAll("span");
       for (let span of spanList) {
         if (span !== document.querySelector(`#span${spanNumber}`)) {
@@ -199,7 +190,6 @@ const executeCMD = (tagType) => {
       }
       textBody.setAttribute("contenteditable", "false");
       document.querySelector(`#span${spanNumber}`).focus();
-      console.log("should have just focused spanNumber = ", spanNumber);
     } else {
       SetCaretPosition(textBody, selectionIHO.caretIndex);
     }
@@ -393,23 +383,13 @@ const getNewInnerHTML = (selectionIHO, textBody, tagType) => {
   }
 
   const innerTagIndexes = indexTags(selectionIHO.innerHTML, tagType);
+
   let firstInnerTag = {};
   let lastInnerTag = {};
   if (innerTagIndexes.length) {
     firstInnerTag = innerTagIndexes[0];
     lastInnerTag = innerTagIndexes[innerTagIndexes.length - 1];
   }
-
-  console.log(
-    "firstInnerTag = ",
-    firstInnerTag,
-    "closestAnteriorTag = ",
-    closestAnteriorTag,
-    "lastInnerTag = ",
-    lastInnerTag,
-    "closestPosteriorTag = ",
-    closestPosteriorTag
-  );
 
   if (
     !firstInnerTag.startOrEndTag &&
@@ -476,7 +456,7 @@ const pushState = () => {
 
 const updateCurrentState = () => {
   console.log("not pushing");
-  console.log("current state index = ", currentStateIndex);
+
   textBodyInnerHTMLStates[currentStateIndex].innerHTML = textBody.innerHTML;
   textBodyInnerHTMLStates[currentStateIndex].innerText = textBody.innerText;
   textBodyInnerHTMLStates[currentStateIndex].caretIndex = getCaretIndex();
