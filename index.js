@@ -30,8 +30,6 @@ const keyTypeLog = [""];
 const userInputLog = [{ type: "key" }];
 const caretNodeLog = [{}];
 
-textBody.addEventListener("keydown", (e) => {});
-
 textBody.addEventListener("keyup", (e) => {
   if (useSpan) {
     const spanList = document.querySelectorAll("span");
