@@ -51,11 +51,10 @@ textBody.addEventListener("keyup", (e) => {
     });
     keyTypeLog.push(`${e.key}`);
     caretNodeLog.push(getCaretNode());
-    if (e.key === "Enter" && keyTypeLog[keyTypeLog.length - 2] === "Enter") {
+    if (keyTypeLog[keyTypeLog.length - 2] === "Enter") {
       updateCurrentState();
     } else {
       if (
-        carriageReturn(e.key) ||
         !lastTwoAnchorNodesAreEqual(caretNodeLog) ||
         wroteWord(e.key) ||
         pastedOrDeletedDigits(e.key) ||
@@ -124,6 +123,7 @@ undoBtn.addEventListener("click", () => {
   } else {
     textBody.innerHTML = textBodyInnerHTMLStates[--currentStateIndex].innerHTML;
     if (useSpan) {
+      console.log("in undo useSpan");
       textBody.setAttribute("contenteditable", "true");
       useSpan = false;
     }
@@ -400,6 +400,17 @@ const getNewInnerHTML = (selectionIHO, textBody, tagType) => {
     lastInnerTag = innerTagIndexes[innerTagIndexes.length - 1];
   }
 
+  console.log(
+    "firstInnerTag = ",
+    firstInnerTag,
+    "closestAnteriorTag = ",
+    closestAnteriorTag,
+    "lastInnerTag = ",
+    lastInnerTag,
+    "closestPosteriorTag = ",
+    closestPosteriorTag
+  );
+
   if (
     !firstInnerTag.startOrEndTag &&
     !lastInnerTag.startOrEndTag &&
@@ -422,6 +433,12 @@ const getNewInnerHTML = (selectionIHO, textBody, tagType) => {
   ) {
     selectionIHO.innerHTML = removeTags(selectionIHO.innerHTML, tagType);
     return `${tagType.startTag}${selectionIHO.innerHTML}`;
+  } else if (
+    firstInnerTag.startOrEndTag === tagType.endTag &&
+    lastInnerTag.startOrEndTag === tagType.startTag
+  ) {
+    selectionIHO.innerHTML = removeTags(selectionIHO.innerHTML, tagType);
+    return `${selectionIHO.innerHTML}`;
   } else {
     selectionIHO.innerHTML = removeTags(selectionIHO.innerHTML, tagType);
     return `${tagType.startTag}${selectionIHO.innerHTML}${tagType.endTag}`;
@@ -452,13 +469,14 @@ const pushState = () => {
   textBodyInnerHTMLStates.push({
     innerHTML: textBody.innerHTML,
     innerText: textBody.innerText,
-    caretIndex: getCaretIndex(),
+    caretIndex: textBodyInnerHTMLStates[currentStateIndex].caretIndex,
   });
   ++currentStateIndex;
 };
 
 const updateCurrentState = () => {
   console.log("not pushing");
+  console.log("current state index = ", currentStateIndex);
   textBodyInnerHTMLStates[currentStateIndex].innerHTML = textBody.innerHTML;
   textBodyInnerHTMLStates[currentStateIndex].innerText = textBody.innerText;
   textBodyInnerHTMLStates[currentStateIndex].caretIndex = getCaretIndex();
@@ -521,7 +539,7 @@ const hasChangedDirection = (carrotNodeLog) => {
 // Move caret to a specific point in a DOM element
 function SetCaretPosition(el, pos) {
   if (pos === 0) {
-    return textBody.focus();
+    return el.focus();
   }
   // Loop through all child nodes
   for (let node of el.childNodes) {
