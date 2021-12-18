@@ -72,22 +72,37 @@ textBody.addEventListener("keyup", (e) => {
 
 underlineBtn.addEventListener("click", () => {
   executeCMD(tag.underline);
+  if (useSpan) {
+    document.querySelector(`#span${spanNumber}`).focus();
+  }
 });
 
 boldBtn.addEventListener("click", () => {
   executeCMD(tag.bold);
+  if (useSpan) {
+    document.querySelector(`#span${spanNumber}`).focus();
+  }
 });
 
 italicBtn.addEventListener("click", () => {
   executeCMD(tag.italic);
+  if (useSpan) {
+    document.querySelector(`#span${spanNumber}`).focus();
+  }
 });
 
 subBtn.addEventListener("click", () => {
   executeCMD(tag.sub);
+  if (useSpan) {
+    document.querySelector(`#span${spanNumber}`).focus();
+  }
 });
 
 supBtn.addEventListener("click", () => {
   executeCMD(tag.sup);
+  if (useSpan) {
+    document.querySelector(`#span${spanNumber}`).focus();
+  }
 });
 
 undoBtn.addEventListener("click", () => {
@@ -151,12 +166,14 @@ const executeCMD = (tagType) => {
       textBody,
       tagType
     );
-
+    console.log("SelectionIHO.innerHTML = ", selectionIHO.innerHTML);
     const newSelectionInnerHTML = getNewInnerHTML(
       selectionIHO,
       textBody,
       tagType
     );
+
+    console.log("newSectionInnerHTML = ", newSelectionInnerHTML.toString());
 
     textBody.innerHTML =
       selectionIHO.anteriorHTML +
@@ -169,6 +186,20 @@ const executeCMD = (tagType) => {
         textBodyInnerHTMLStates.pop();
       }
     }
+    if (useSpan) {
+      const spanList = document.querySelectorAll("span");
+      if (spanList.length > 1) {
+        for (let span of spanList) {
+          if (span !== document.querySelector(`#span${spanNumber}`)) {
+            span.setAttribute("contenteditable", "false");
+          }
+        }
+      }
+      textBody.setAttribute("contenteditable", "false");
+      // document.querySelector(`#span${spanNumber}`).focus();
+    } else {
+      SetCaretPosition(textBody, selectionIHO.caretIndex);
+    }
 
     if (
       !selectionString &&
@@ -179,18 +210,6 @@ const executeCMD = (tagType) => {
       pushState();
     }
 
-    if (useSpan) {
-      const spanList = document.querySelectorAll("span");
-      for (let span of spanList) {
-        if (span !== document.querySelector(`#span${spanNumber}`)) {
-          span.setAttribute("contenteditable", "false");
-        }
-      }
-      textBody.setAttribute("contenteditable", "false");
-      document.querySelector(`#span${spanNumber}`).focus();
-    } else {
-      SetCaretPosition(textBody, selectionIHO.caretIndex);
-    }
     preTag.innerText = textBody.innerHTML;
     //document.getSelection().removeAllRanges();
   } catch (e) {
@@ -390,8 +409,16 @@ const getNewInnerHTML = (selectionIHO, textBody, tagType) => {
   }
 
   if (
-    !firstInnerTag.startOrEndTag &&
-    !lastInnerTag.startOrEndTag &&
+    firstInnerTag.startOrEndTag === tagType.endTag &&
+    lastInnerTag.startOrEndTag === tagType.startTag &&
+    selectionIHO.innerHTML.indexOf(`${tagType.endTag}</div>`) === -1 &&
+    selectionIHO.innerHTML.indexOf(`${tagType.endTag}</span><div`) &&
+    closestAnteriorTag.startOrEndTag === tagType.startTag &&
+    closestPosteriorTag.startOrEndTag === tagType.endTag
+  ) {
+    selectionIHO.innerHTML = removeTags(selectionIHO.innerHTML, tagType);
+    return `${selectionIHO.innerHTML}`;
+  } else if (
     closestAnteriorTag.startOrEndTag === tagType.startTag &&
     closestPosteriorTag.startOrEndTag === tagType.endTag
   ) {
@@ -411,12 +438,6 @@ const getNewInnerHTML = (selectionIHO, textBody, tagType) => {
   ) {
     selectionIHO.innerHTML = removeTags(selectionIHO.innerHTML, tagType);
     return `${tagType.startTag}${selectionIHO.innerHTML}`;
-  } else if (
-    firstInnerTag.startOrEndTag === tagType.endTag &&
-    lastInnerTag.startOrEndTag === tagType.startTag
-  ) {
-    selectionIHO.innerHTML = removeTags(selectionIHO.innerHTML, tagType);
-    return `${selectionIHO.innerHTML}`;
   } else {
     selectionIHO.innerHTML = removeTags(selectionIHO.innerHTML, tagType);
     return `${tagType.startTag}${selectionIHO.innerHTML}${tagType.endTag}`;
