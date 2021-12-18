@@ -412,7 +412,8 @@ const getNewInnerHTML = (selectionIHO, textBody, tagType) => {
     firstInnerTag.startOrEndTag === tagType.endTag &&
     lastInnerTag.startOrEndTag === tagType.startTag &&
     selectionIHO.innerHTML.indexOf(`${tagType.endTag}</div>`) === -1 &&
-    selectionIHO.innerHTML.indexOf(`${tagType.endTag}</span><div`) &&
+    selectionIHO.innerHTML.indexOf(`${tagType.endTag}</span>`) === -1 &&
+    selectionIHO.innerHTML.indexOf(`<div>${tagType.startTag}`) === -1 &&
     closestAnteriorTag.startOrEndTag === tagType.startTag &&
     closestPosteriorTag.startOrEndTag === tagType.endTag
   ) {
