@@ -8,6 +8,8 @@ const supBtn = document.querySelector("#sup-text");
 const undoBtn = document.querySelector("#undo");
 const redoBtn = document.querySelector("#redo");
 
+let undoCount = 0;
+
 const textBodyInnerHTMLStates = [
   {
     innerHTML: textBody.innerHTML,
@@ -131,26 +133,24 @@ undoBtn.addEventListener("click", () => {
     }
   } else {
     textBody.innerHTML = textBodyInnerHTMLStates[--currentStateIndex].innerHTML;
-    if (useSpan) {
-      textBody.setAttribute("contenteditable", "true");
-      useSpan = false;
-    }
+    const spanList = document.querySelectorAll("span");
     if (
-      document.querySelector(`#span${spanNumber - 1}`) &&
-      document
-        .querySelector(`#span${spanNumber - 1}`)
-        .getAttribute("contentEditable") === "false"
+      spanList.length > 1 &&
+      document.querySelector(`#span1`).getAttribute("contentEditable") ===
+        "false"
     ) {
-      const spanList = document.querySelectorAll("span");
-      if (spanList.length > 1) {
-        for (let span of spanList) {
-          if (span !== document.querySelector(`#span${spanNumber}`)) {
-            span.setAttribute("contenteditable", "false");
-          }
-        }
+      for (let i = 1; i < spanList.length - 1; ++i) {
+        spanList[i].setAttribute("contenteditable", "false");
       }
+
       textBody.setAttribute("contenteditable", "false");
-      document.querySelector(`#span${spanNumber}`).focus();
+      console.log(
+        'textBody.getAttribute("contentEditable") === "false"',
+        textBody.getAttribute("contentEditable") === "false",
+        "\n count = ",
+        undoCount
+      );
+      document.querySelector(`#span${spanList.length}`).focus();
       useSpan = true;
       preTag.innerText = textBody.innerHTML;
       return;
@@ -168,21 +168,22 @@ redoBtn.addEventListener("click", () => {
   if (textBodyInnerHTMLStates.length > currentStateIndex + 1) {
     textBody.innerHTML = textBodyInnerHTMLStates[++currentStateIndex].innerHTML;
     if (
-      document.querySelector(`#span${spanNumber - 1}`) &&
-      document
-        .querySelector(`#span${spanNumber - 1}`)
-        .getAttribute("contentEditable") === "false"
+      spanList.length > 1 &&
+      document.querySelector(`#span1`).getAttribute("contentEditable") ===
+        "false"
     ) {
-      const spanList = document.querySelectorAll("span");
-      if (spanList.length > 1) {
-        for (let span of spanList) {
-          if (span !== document.querySelector(`#span${spanNumber}`)) {
-            span.setAttribute("contenteditable", "false");
-          }
-        }
+      for (let i = 1; i < spanList.length - 1; ++i) {
+        spanList[i].setAttribute("contenteditable", "false");
       }
+
       textBody.setAttribute("contenteditable", "false");
-      document.querySelector(`#span${spanNumber}`).focus();
+      console.log(
+        'textBody.getAttribute("contentEditable") === "false"',
+        textBody.getAttribute("contentEditable") === "false",
+        "\n count = ",
+        undoCount
+      );
+      document.querySelector(`#span${spanList.length}`).focus();
       useSpan = true;
       preTag.innerText = textBody.innerHTML;
       return;
