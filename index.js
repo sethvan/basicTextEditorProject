@@ -139,17 +139,7 @@ undoBtn.addEventListener("click", () => {
       document.querySelector(`#span1`).getAttribute("contentEditable") ===
         "false"
     ) {
-      for (let i = 1; i < spanList.length - 1; ++i) {
-        spanList[i].setAttribute("contenteditable", "false");
-      }
-
       textBody.setAttribute("contenteditable", "false");
-      console.log(
-        'textBody.getAttribute("contentEditable") === "false"',
-        textBody.getAttribute("contentEditable") === "false",
-        "\n count = ",
-        undoCount
-      );
       document.querySelector(`#span${spanList.length}`).focus();
       useSpan = true;
       preTag.innerText = textBody.innerHTML;
@@ -173,17 +163,7 @@ redoBtn.addEventListener("click", () => {
       document.querySelector(`#span1`).getAttribute("contentEditable") ===
         "false"
     ) {
-      for (let i = 1; i < spanList.length - 1; ++i) {
-        spanList[i].setAttribute("contenteditable", "false");
-      }
-
       textBody.setAttribute("contenteditable", "false");
-      console.log(
-        'textBody.getAttribute("contentEditable") === "false"',
-        textBody.getAttribute("contentEditable") === "false",
-        "\n count = ",
-        undoCount
-      );
       document.querySelector(`#span${spanList.length}`).focus();
       useSpan = true;
       preTag.innerText = textBody.innerHTML;
