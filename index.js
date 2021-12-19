@@ -64,7 +64,10 @@ textBody.addEventListener("keyup", (e) => {
           }
         }
         pushState();
-      } else updateCurrentState();
+      } else {
+        textBodyInnerHTMLStates[currentStateIndex].caretIndex = getCaretIndex();
+        updateCurrentState();
+      }
     }
     preTag.innerText = textBody.innerHTML;
   }
@@ -132,6 +135,27 @@ undoBtn.addEventListener("click", () => {
       textBody.setAttribute("contenteditable", "true");
       useSpan = false;
     }
+    if (
+      document.querySelector(`#span${spanNumber - 1}`) &&
+      document
+        .querySelector(`#span${spanNumber - 1}`)
+        .getAttribute("contentEditable") === "false"
+    ) {
+      const spanList = document.querySelectorAll("span");
+      if (spanList.length > 1) {
+        for (let span of spanList) {
+          if (span !== document.querySelector(`#span${spanNumber}`)) {
+            span.setAttribute("contenteditable", "false");
+          }
+        }
+      }
+      textBody.setAttribute("contenteditable", "false");
+      document.querySelector(`#span${spanNumber}`).focus();
+      useSpan = true;
+      preTag.innerText = textBody.innerHTML;
+      return;
+    }
+    );
     SetCaretPosition(
       textBody,
       textBodyInnerHTMLStates[currentStateIndex].caretIndex
@@ -144,6 +168,26 @@ undoBtn.addEventListener("click", () => {
 redoBtn.addEventListener("click", () => {
   if (textBodyInnerHTMLStates.length > currentStateIndex + 1) {
     textBody.innerHTML = textBodyInnerHTMLStates[++currentStateIndex].innerHTML;
+    if (
+      document.querySelector(`#span${spanNumber - 1}`) &&
+      document
+        .querySelector(`#span${spanNumber - 1}`)
+        .getAttribute("contentEditable") === "false"
+    ) {
+      const spanList = document.querySelectorAll("span");
+      if (spanList.length > 1) {
+        for (let span of spanList) {
+          if (span !== document.querySelector(`#span${spanNumber}`)) {
+            span.setAttribute("contenteditable", "false");
+          }
+        }
+      }
+      textBody.setAttribute("contenteditable", "false");
+      document.querySelector(`#span${spanNumber}`).focus();
+      useSpan = true;
+      preTag.innerText = textBody.innerHTML;
+      return;
+    }
     preTag.innerText = textBody.innerHTML;
     SetCaretPosition(
       textBody,
@@ -166,14 +210,11 @@ const executeCMD = (tagType) => {
       textBody,
       tagType
     );
-    console.log("SelectionIHO.innerHTML = ", selectionIHO.innerHTML);
     const newSelectionInnerHTML = getNewInnerHTML(
       selectionIHO,
       textBody,
       tagType
     );
-
-    console.log("newSectionInnerHTML = ", newSelectionInnerHTML.toString());
 
     textBody.innerHTML =
       selectionIHO.anteriorHTML +
@@ -200,11 +241,9 @@ const executeCMD = (tagType) => {
     } else {
       SetCaretPosition(textBody, selectionIHO.caretIndex);
     }
-
-    if (
-      !selectionString &&
-      userInputLog[userInputLog.length - 2].type === "click"
-    ) {
+    textBodyInnerHTMLStates[currentStateIndex].caretIndex =
+      selectionIHO.caretIndex;
+    if (!selectionString) {
       updateCurrentState();
     } else {
       pushState();
@@ -262,43 +301,29 @@ const getSelectionInnerHTML = (
         caretIndex,
       };
     } else {
-      if (
-        userInputLog[userInputLog.length - 1].type === "click" &&
-        userInputLog[userInputLog.length - 1].clickType === tagType &&
-        userInputLog[userInputLog.length - 1].index === getCaretIndex()
-      ) {
-        userInputLog.pop();
-        selectionRange.setStart(textBody, 0);
-        const caretIndex =
-          selectionRange.toString().length - myDelimiter.length;
-        textBody.innerHTML = textBodyHTML.replaceAll(myDelimiter, "");
-        return { caretIndex };
-      } else {
-        let innerHTML = `<span id=\"span${++spanNumber}\" contenteditable=\"true\" tabindex=\"0\"></span>`;
-        let [anteriorHTML, posteriorHTML] = textBodyHTML.split(myDelimiter);
-        selectionRange.setStart(textBody, 0);
-        let caretIndex = selectionRange.toString().length - myDelimiter.length;
-        let index = anteriorHTML.length;
-        let posteriorIndex = index + innerHTML.length;
-        textBody.innerHTML = textBodyHTML.replaceAll(myDelimiter, "");
+      let innerHTML = `<span id=\"span${++spanNumber}\" contenteditable=\"true\" tabindex=\"0\"></span>`;
+      let [anteriorHTML, posteriorHTML] = textBodyHTML.split(myDelimiter);
+      selectionRange.setStart(textBody, 0);
+      let caretIndex = selectionRange.toString().length - myDelimiter.length;
+      let index = anteriorHTML.length;
+      let posteriorIndex = index + innerHTML.length;
+      textBody.innerHTML = textBodyHTML.replaceAll(myDelimiter, "");
 
-        useSpan = true;
+      useSpan = true;
+      userInputLog.push({
+        type: "click",
+        clickType: tagType,
+        index: caretIndex,
+      });
 
-        userInputLog.push({
-          type: "click",
-          clickType: tagType,
-          index: caretIndex,
-        });
-
-        return {
-          innerHTML,
-          index,
-          posteriorHTML,
-          posteriorIndex,
-          anteriorHTML,
-          caretIndex,
-        };
-      }
+      return {
+        innerHTML,
+        index,
+        posteriorHTML,
+        posteriorIndex,
+        anteriorHTML,
+        caretIndex,
+      };
     }
   } catch (e) {
     console.log(e);
@@ -466,20 +491,22 @@ const lastTwoAnchorNodesAreEqual = (carrotNodeLog) => {
 
 const pushState = () => {
   console.log("pushing");
+  const caretIndex = textBodyInnerHTMLStates[currentStateIndex].caretIndex;
   textBodyInnerHTMLStates.push({
     innerHTML: textBody.innerHTML,
     innerText: textBody.innerText,
-    caretIndex: textBodyInnerHTMLStates[currentStateIndex].caretIndex,
+    caretIndex: caretIndex,
   });
   ++currentStateIndex;
 };
 
 const updateCurrentState = () => {
   console.log("not pushing");
+  const caretIndex = textBodyInnerHTMLStates[currentStateIndex].caretIndex;
 
   textBodyInnerHTMLStates[currentStateIndex].innerHTML = textBody.innerHTML;
   textBodyInnerHTMLStates[currentStateIndex].innerText = textBody.innerText;
-  textBodyInnerHTMLStates[currentStateIndex].caretIndex = getCaretIndex();
+  textBodyInnerHTMLStates[currentStateIndex].caretIndex = caretIndex;
 };
 
 const wroteWord = (keyPressed) => {
