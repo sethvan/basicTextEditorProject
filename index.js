@@ -155,7 +155,6 @@ undoBtn.addEventListener("click", () => {
       preTag.innerText = textBody.innerHTML;
       return;
     }
-    );
     SetCaretPosition(
       textBody,
       textBodyInnerHTMLStates[currentStateIndex].caretIndex
