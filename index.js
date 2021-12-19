@@ -167,6 +167,7 @@ undoBtn.addEventListener("click", () => {
 redoBtn.addEventListener("click", () => {
   if (textBodyInnerHTMLStates.length > currentStateIndex + 1) {
     textBody.innerHTML = textBodyInnerHTMLStates[++currentStateIndex].innerHTML;
+    const spanList = document.querySelectorAll("span");
     if (
       spanList.length > 1 &&
       document.querySelector(`#span1`).getAttribute("contentEditable") ===
