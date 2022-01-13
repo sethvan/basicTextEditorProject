@@ -8,8 +8,6 @@ const supBtn = document.querySelector("#sup-text");
 const undoBtn = document.querySelector("#undo");
 const redoBtn = document.querySelector("#redo");
 
-let undoCount = 0;
-
 const textBodyInnerHTMLStates = [
   {
     innerHTML: textBody.innerHTML,
@@ -29,7 +27,6 @@ preTag.innerText = textBody.innerHTML;
 let trend = true; //false = downwards trend and true = upwards trend
 let lengthIncrement = true; //false = downwards increment and true = upwards increment
 const keyTypeLog = [""];
-const userInputLog = [{ type: "key" }];
 const caretNodeLog = [{}];
 
 textBody.addEventListener("keyup", (e) => {
@@ -44,9 +41,6 @@ textBody.addEventListener("keyup", (e) => {
     useSpan = false;
   }
   if (textHasChanged()) {
-    userInputLog.push({
-      type: "key",
-    });
     keyTypeLog.push(`${e.key}`);
     caretNodeLog.push(getCaretNode());
     if (keyTypeLog[keyTypeLog.length - 2] === "Enter") {
@@ -291,11 +285,6 @@ const getSelectionInnerHTML = (
       textBody.innerHTML = textBodyHTML.replaceAll(myDelimiter, "");
 
       useSpan = true;
-      userInputLog.push({
-        type: "click",
-        clickType: tagType,
-        index: caretIndex,
-      });
 
       return {
         innerHTML,
@@ -459,7 +448,7 @@ const getCaretNode = () => {
   };
 };
 
-const lastTwoAnchorNodesAreEqual = (carrotNodeLog) => {
+const lastTwoAnchorNodesAreEqual = (caretNodeLog) => {
   if (textBody.innerText.length) {
     if (textBody.innerText.length > 2) {
       return (
