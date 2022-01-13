@@ -494,6 +494,7 @@ const wroteWord = (keyPressed) => {
   return keyPressed === " " && keyTypeLog[keyTypeLog.length - 2] !== " ";
 };
 
+//this can be removed as it no longer has a purpose in current commit
 const carriageReturn = (keyPressed) => {
   return keyPressed === "Enter";
 };
@@ -526,7 +527,7 @@ const textHasChanged = () => {
   );
 };
 
-const hasChangedDirection = (carrotNodeLog) => {
+const hasChangedDirection = (caretNodeLog) => {
   const current = caretNodeLog[caretNodeLog.length - 1].offSet;
   const previous = caretNodeLog[caretNodeLog.length - 2].offSet;
 
