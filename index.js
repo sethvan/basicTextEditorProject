@@ -3,6 +3,10 @@ const preTag = document.querySelector("#pre-tag");
 const undoBtn = document.querySelector("#undo");
 const redoBtn = document.querySelector("#redo");
 
+const direction = ["LEFT_TO_RIGHT", "RIGHT_TO_LEFT"]; // kind of like an enum, will probably change later
+let selectionDirection = ""; // put in this variable and the one above as temp to test new event listeners
+let caretIndex = 0;
+
 let currentCommandIndex = 1;
 
 preTag.innerText = textBody.innerHTML;
@@ -13,7 +17,46 @@ const caretNodeLog = [{}];
 let lastStateText = "";
 let currentStateText = "";
 
+textBody.addEventListener("mousedown", (e) => {
+  if (textBody.innerText && !document.getSelection().toString().length) {
+    setTimeout(() => {
+      caretIndex = getCaretIndex();
+      console.log("Caret index = ", caretIndex);
+    }, 10); // needs time to accommodate first before it can function properly
+  }
+});
+
+textBody.addEventListener("click", (e) => {
+  setTimeout(() => {
+    const selectionLength = document.getSelection().toString().length;
+    if (selectionLength) {
+      const begin = caretIndex;
+      const end = begin + selectionLength;
+      if (
+        textBody.innerText.slice(begin, end) ===
+        document.getSelection().toString()
+      ) {
+        selectionDirection = direction[0];
+      } else {
+        selectionDirection = direction[1];
+        --caretIndex; // so that it matches the first index actually being selected on the right side
+      }
+      console.log(
+        `Selection of ${selectionLength} digits made from ${selectionDirection} starting at index ${caretIndex}.`
+      );
+    } else {
+      //Why the duplicate? because if you make a selection and then change your mind and click inside the selection
+      //to place the caret somewhere there instead, it only works here, not in the mousedown listener and without the
+      //mousedown listener, the above block detailing the selection does not work
+      caretIndex = getCaretIndex();
+      console.log("Caret index = ", caretIndex);
+    }
+  }, 10); // needs time to accommodate first for the else block to function properly
+});
+
 textBody.addEventListener("keyup", (e) => {
+  caretIndex = getCaretIndex();
+  console.log("Caret index = ", caretIndex);
   if (textHasChanged()) {
     keyTypeLog.push(`${e.key}`);
     caretNodeLog.push(getCaretNode());
