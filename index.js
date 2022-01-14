@@ -19,6 +19,7 @@ let currentStateText = "";
 
 textBody.addEventListener("mousedown", (e) => {
   setTimeout(() => {
+    // Extra setTimeout wrapper is for when user has decided to change the selection they have made
     if (textBody.innerText && !document.getSelection().toString().length) {
       setTimeout(() => {
         caretIndex = getCaretIndex();
@@ -29,7 +30,10 @@ textBody.addEventListener("mousedown", (e) => {
 });
 
 textBody.addEventListener("click", (e) => {
+  // For our use case this will tell us if there was already text selected when user clicked
+  const userHasDeselected = document.getSelection().toString().length;
   setTimeout(() => {
+    // This tells us that the click was in order to make a selection
     const selectionLength = document.getSelection().toString().length;
     if (selectionLength) {
       const begin = caretIndex;
@@ -46,10 +50,10 @@ textBody.addEventListener("click", (e) => {
       console.log(
         `Selection of ${selectionLength} digits made from ${selectionDirection} starting at index ${caretIndex}.`
       );
-    } else {
-      //Why the duplicate? because if you make a selection and then change your mind and click inside the selection
+    } else if (userHasDeselected) {
+      //Why the duplicate of mousedown? Because if you make a selection and then change your mind and click inside the selection
       //to place the caret somewhere there instead, it only works here, not in the mousedown listener and without the
-      //mousedown listener, the above block detailing the selection does not work
+      //mousedown listener, the above block detailing the selection does not have the correct caretIndex to work with.
       caretIndex = getCaretIndex();
       console.log("Caret index = ", caretIndex);
     }
