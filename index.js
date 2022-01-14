@@ -18,12 +18,14 @@ let lastStateText = "";
 let currentStateText = "";
 
 textBody.addEventListener("mousedown", (e) => {
-  if (textBody.innerText && !document.getSelection().toString().length) {
-    setTimeout(() => {
-      caretIndex = getCaretIndex();
-      console.log("Caret index = ", caretIndex);
-    }, 10); // needs time to accommodate first before it can function properly
-  }
+  setTimeout(() => {
+    if (textBody.innerText && !document.getSelection().toString().length) {
+      setTimeout(() => {
+        caretIndex = getCaretIndex();
+        console.log("Caret index = ", caretIndex);
+      }, 10); // needs time to accommodate first before it can function properly
+    }
+  }, 10);
 });
 
 textBody.addEventListener("click", (e) => {
