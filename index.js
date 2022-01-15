@@ -207,3 +207,28 @@ const getCaretIndex = () => {
   selection.collapseToEnd();
   return index;
 };
+
+// COMMANDS
+
+class AddTextCommand {
+    constructor(text, node, index) {
+        this.text = text;
+        this.node = node;
+        this.index = index;
+    }
+
+    execute() {
+        // Adds this.text to this.node at this.index 
+        let text = this.node.textContent;
+        text = text.slice(0, this.index) + this.text + text.slice(this.index);
+        this.node.textContent = text;
+    }
+
+    undo() {
+        // Removes this.text from this.node at this.index
+        let text = this.node.textContent;
+        text = text.slice(0, this.index) + text.slice(this.index + this.text.length);
+        this.node.textContent = text;
+    }
+}
+
