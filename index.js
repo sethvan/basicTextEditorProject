@@ -207,3 +207,16 @@ const getCaretIndex = () => {
   selection.collapseToEnd();
   return index;
 };
+
+// COMMANDS 
+
+class AddText {
+    constructor() {
+    }
+
+    execute() {
+    }
+
+    undo() {
+    }
+}
