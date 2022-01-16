@@ -192,7 +192,7 @@ redoBtn.addEventListener("click", () => {
     );
   }
 });
-
+// what happens when user clicks styling button
 const executeCMD = (tagType) => {
   try {
     const selection = document.getSelection();
@@ -270,6 +270,10 @@ const executeCMD = (tagType) => {
   }
 };
 
+// Description of function given inside executeCMD function above
+//IMPORTANT: I had forgotten but it needs to be mentioned here that this ONLY works if the selection
+// is selected from left to right. Needs to be modified for from right to left as well. However due
+//to the click event listeners we made on Jan, 13th 2022 in the command branch we should be able to fix it.
 const getSelectionInnerHTML = (selection, selectionRange, textBody) => {
   try {
     /* I am semi-new to JavaScript and I could not for the life of me find a way to get the innerHTML
