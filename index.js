@@ -23,16 +23,16 @@ const textBodyInnerHTMLStates = [
   },
 ];
 let currentStateIndex = 1;
-let spanNumber = 0; // for the id of each created span
-let useSpan = false; // see getSelectionInnerHTML() and keyup even listener
+let spanNumber = 0; // For the id of each created span
+let useSpan = false; // See getSelectionInnerHTML() and keyup event listener
 preTag.innerText = textBody.innerHTML;
-let trend = true; //false = downwards trend and true = upwards trend
-let lengthIncrement = true; //false = downwards increment and true = upwards increment
+let trend = true; // False = downwards trend and true = upwards trend
+let lengthIncrement = true; // False = downwards increment and true = upwards increment
 const keyTypeLog = [""];
 const caretNodeLog = [{}];
 
 textBody.addEventListener("keyup", (e) => {
-  // if a newly created span was being focused before this key event, reset all the contenteditable attributes
+  // If a newly created span was being focused before this key event, reset all the contenteditable attributes
   // for all other spans (that along with textBody were temporarily set to false so as to focus the span) back to true now
   if (useSpan) {
     const spanList = document.querySelectorAll("span");
@@ -193,13 +193,12 @@ redoBtn.addEventListener("click", () => {
   }
 });
 
-// what happens when user clicks styling button
 const executeCMD = (tagType) => {
   try {
     const selection = document.getSelection();
+    const selectionRange = selection.getRangeAt(0);
 
     if (!textBody.contains(selection.anchorNode)) return; // selection has to be inside textBody
-    const selectionString = selection.toString(); // will function as a boolean to indicate if text was selected or not
 
     /*IHO = Inner HTML Object, function will return an object containing:
     innerHTML = If there is a selection it returns the innerHTML of that selection, else it returns innerHTML 
@@ -210,20 +209,35 @@ const executeCMD = (tagType) => {
     anteriorHTML = Portion of textBody's innerHTML that comes before the selection
     caretIndex = where caret is after click
     */
-    const selectionIHO = getSelectionInnerHTML(selection, tagType);
-    const newSelectionInnerHTML = getNewInnerHTML(selectionIHO, tagType);
+    const selectionIHO = getSelectionInnerHTML(
+      selection,
+      selectionRange,
+      textBody
+    );
 
+    /*Function takes the selection's innerHTML string and modifies it to match
+    the desired effect of what clicking style button should produce */
+    const newSelectionInnerHTML = getNewInnerHTML(
+      selectionIHO,
+      textBody,
+      tagType
+    );
+
+    // Inserts in place the new selection innerHTML string
     textBody.innerHTML =
       selectionIHO.anteriorHTML +
       `${newSelectionInnerHTML}` +
       selectionIHO.posteriorHTML;
 
+    // like in keyup event, If user has undone states before this change, delete all recorded states that came after this state.
     if (currentStateIndex < textBodyInnerHTMLStates.length - 1) {
       let difference = textBodyInnerHTMLStates.length - 1 - currentStateIndex;
       for (let i = 0; i < difference; ++i) {
         textBodyInnerHTMLStates.pop();
       }
-    }
+    } // If no selection was made and empty span to be focused was put in place of the innerHTML of section,
+    // then momentarily change attributes of the other spans and the textBody to make new span focusable.
+    // Focus will be added inside btn listener
     if (useSpan) {
       const spanList = document.querySelectorAll("span");
       if (spanList.length > 1) {
@@ -234,32 +248,42 @@ const executeCMD = (tagType) => {
         }
       }
       textBody.setAttribute("contenteditable", "false");
-      // document.querySelector(`#span${spanNumber}`).focus();
     } else {
       SetCaretPosition(textBody, selectionIHO.caretIndex);
-    }
+    } // record caret position in state
     textBodyInnerHTMLStates[currentStateIndex].caretIndex =
       selectionIHO.caretIndex;
     if (!selection.toString()) {
+      // If no selection, do not push, just update (personal taste)
       updateCurrentState();
     } else {
       pushState();
     }
 
     preTag.innerText = textBody.innerHTML;
+    // this commented out line here, I am not sure of its purpose, I only remember I copied it from
+    // somewhere and it was needed before, but currently seems to work fine without it, so not sure what
+    // to do with it or not anymore.
     //document.getSelection().removeAllRanges();
   } catch (e) {
     console.log(e);
   }
 };
 
-const getSelectionInnerHTML = (selection, textBody, tagType) => {
+const getSelectionInnerHTML = (selection, selectionRange, textBody) => {
   try {
-    const selectionString = selection.toString();
+    /* I am semi-new to JavaScript and I could not for the life of me find a way to get the innerHTML
+    of a selectionObject, so this function does it by first temporarily creating a random delimiter 
+    to insert at the beginning and end of the selection inside of the innerHTML and then using those 
+    delimiters to split the entire textBody.innerHTML into what was selected, what precedes it, and 
+    what follows it. I chose to use a tilde followed by a large random number as I imagined the risk 
+    would be low that a user would have that in their text. */
     const myDelimiter = `~${Math.floor(Math.random() * 1000000000000000)}`;
-    const selectionRange = selection.getRangeAt(0);
 
-    if (selectionString) {
+    /* If there is a selection (that was selected from left to right), this block inserts a delimiter 
+    at the end of the selection. I googled two different things and put them together to come up with this
+    so it may not be correctly written though it works.*/
+    if (selection.toString()) {
       const rangeToPlaceEnd = document.createRange();
       rangeToPlaceEnd.setStart(selection.focusNode, selection.focusOffset);
       rangeToPlaceEnd.setEnd(selection.focusNode, selection.focusOffset);
@@ -268,7 +292,7 @@ const getSelectionInnerHTML = (selection, textBody, tagType) => {
         .createContextualFragment(myDelimiter);
       rangeToPlaceEnd.insertNode(endNode);
     }
-
+    //does the same as above but at the beginning of the selection
     const newNode = document
       .createRange()
       .createContextualFragment(myDelimiter);
@@ -276,13 +300,18 @@ const getSelectionInnerHTML = (selection, textBody, tagType) => {
 
     const textBodyHTML = textBody.innerHTML.toString();
 
-    if (selectionString) {
+    if (selection.toString()) {
+      // if there is a selection, split it out
       let [anteriorHTML, innerHTML, posteriorHTML] =
         textBodyHTML.split(myDelimiter);
+
+      //calculate index properties
       selectionRange.setStart(textBody, 0);
       let caretIndex = selectionRange.toString().length - myDelimiter.length;
       let index = anteriorHTML.length;
       let posteriorIndex = index + innerHTML.length;
+
+      //remove delimiters
       textBody.innerHTML = textBodyHTML.replaceAll(myDelimiter, "");
 
       return {
@@ -294,7 +323,9 @@ const getSelectionInnerHTML = (selection, textBody, tagType) => {
         caretIndex,
       };
     } else {
-      let innerHTML = `<span id=\"span${++spanNumber}\" contenteditable=\"true\" tabindex=\"0\"></span>`;
+      // If no selection, make innerHTML equal to a span to be focused on for caret placement
+      // and set useSpan to true.
+      let innerHTML = `<span id="span${++spanNumber}" contenteditable="true" tabindex="0"></span>`;
       let [anteriorHTML, posteriorHTML] = textBodyHTML.split(myDelimiter);
       selectionRange.setStart(textBody, 0);
       let caretIndex = selectionRange.toString().length - myDelimiter.length;
@@ -318,141 +349,100 @@ const getSelectionInnerHTML = (selection, textBody, tagType) => {
   }
 };
 
+// Styling tags
+// Regex added to lean up the code concerning tag searches in the innerHTML
 const tag = {
   bold: {
     startTag: `<strong>`,
     endTag: `</strong>`,
+    regex: /([<][/]?strong[>])/g,
   },
   italic: {
     startTag: `<em>`,
     endTag: `</em>`,
+    regex: /([<][/]?em[>])/g,
   },
   underline: {
     startTag: `<u>`,
     endTag: `</u>`,
+    regex: /([<][/]?u[>])/g,
   },
   sub: {
     startTag: `<sub>`,
     endTag: `</sub>`,
+    regex: /([<][/]?sub[>])/g,
   },
   sup: {
     startTag: `<sup>`,
     endTag: `</sup>`,
+    regex: /([<][/]?sup[>])/g,
   },
 };
 
-//Source:https://bit.ly/3hEZdCl
-// countSubstrings
-const indexTags = (str, tagType) => {
-  const startTagIndexes = [];
-  let count = 0,
-    i = 0;
-  while (true) {
-    const r = str.indexOf(tagType.startTag, i);
-    if (r !== -1) {
-      startTagIndexes.push({
-        startOrEndTag: tagType.startTag,
-        index: r,
-      });
-      [count, i] = [count + 1, r + 1];
-    } else break;
-  }
-
-  const endTagIndexes = [];
-  count = 0;
-  i = 0;
-  while (true) {
-    const r = str.indexOf(tagType.endTag, i);
-    if (r !== -1) {
-      endTagIndexes.push({
-        startOrEndTag: tagType.endTag,
-        index: r,
-      });
-      [count, i] = [count + 1, r + 1];
-    } else break;
-  }
-
-  const tagIndexes = startTagIndexes.concat(endTagIndexes);
-  tagIndexes.sort((a, b) => {
-    return a.index - b.index;
-  });
-  return tagIndexes;
-};
-
 const removeTags = (str, tagType) => {
-  const startTagRegex = new RegExp(tagType.startTag, "g");
-  const endTagRegex = new RegExp(tagType.endTag, "g");
-
-  str = str.replaceAll(startTagRegex, "");
-  return str.replaceAll(endTagRegex, "");
+  return str.replaceAll(tagType.regex, "");
 };
 
 const getNewInnerHTML = (selectionIHO, textBody, tagType) => {
-  const tagIndexes = indexTags(textBody.innerHTML, tagType);
+  let antTags, posTags, innerTags;
+  let closestAnteriorTag =
+    (closestPosteriorTag =
+    firstInnerTag =
+    lastInnerTag =
+      null);
 
-  let closestAnteriorTag = {};
-  let closestPosteriorTag = {};
-  if (tagIndexes.length) {
-    for (let i = 0; i < tagIndexes.length; ++i) {
-      if (tagIndexes[i].index < selectionIHO.index)
-        closestAnteriorTag = tagIndexes[i];
-    }
+  if ((antTags = selectionIHO.anteriorHTML.match(tagType.regex)))
+    closestAnteriorTag = antTags[antTags.length - 1];
 
-    for (let i = 0; i < tagIndexes.length; ++i) {
-      if (
-        tagIndexes[i].index >=
-        selectionIHO.index +
-          (selectionIHO.innerHTML.slice(0, 5) === `<span`
-            ? 0
-            : selectionIHO.innerHTML.length)
-      ) {
-        closestPosteriorTag = tagIndexes[i];
-        break;
-      }
-    }
-  }
+  if ((posTags = selectionIHO.posteriorHTML.match(tagType.regex)))
+    closestPosteriorTag = posTags[0];
 
-  const innerTagIndexes = indexTags(selectionIHO.innerHTML, tagType);
-
-  let firstInnerTag = {};
-  let lastInnerTag = {};
-  if (innerTagIndexes.length) {
-    firstInnerTag = innerTagIndexes[0];
-    lastInnerTag = innerTagIndexes[innerTagIndexes.length - 1];
+  if ((innerTags = selectionIHO.innerHTML.match(tagType.regex))) {
+    firstInnerTag = innerTags[0];
+    lastInnerTag = innerTags[innerTags.length - 1];
   }
 
   if (
-    firstInnerTag.startOrEndTag === tagType.endTag &&
-    lastInnerTag.startOrEndTag === tagType.startTag &&
+    //This scenario is mostly for when connecting one emboldened section to another, all
+    // that is done is that any corresponding tags of tagType are removed from the selectionIHO.innerHTML
+    firstInnerTag === tagType.endTag &&
+    lastInnerTag === tagType.startTag &&
+    // These following 3 lines were some sort of jury rig I had to do due to Safari being weird
+    // God-willing we will stop using spans for this styling and the jury rig will go way
     selectionIHO.innerHTML.indexOf(`${tagType.endTag}</div>`) === -1 &&
     selectionIHO.innerHTML.indexOf(`${tagType.endTag}</span>`) === -1 &&
     selectionIHO.innerHTML.indexOf(`<div>${tagType.startTag}`) === -1 &&
-    closestAnteriorTag.startOrEndTag === tagType.startTag &&
-    closestPosteriorTag.startOrEndTag === tagType.endTag
+    closestAnteriorTag === tagType.startTag &&
+    closestPosteriorTag === tagType.endTag
   ) {
     selectionIHO.innerHTML = removeTags(selectionIHO.innerHTML, tagType);
     return `${selectionIHO.innerHTML}`;
   } else if (
-    closestAnteriorTag.startOrEndTag === tagType.startTag &&
-    closestPosteriorTag.startOrEndTag === tagType.endTag
+    // User selected within an already stylized range, therefore we remove bold styling from
+    // the selection by adding tags to negate the styling
+    closestAnteriorTag === tagType.startTag &&
+    closestPosteriorTag === tagType.endTag
   ) {
     selectionIHO.innerHTML = removeTags(selectionIHO.innerHTML, tagType);
     return `${tagType.endTag}${selectionIHO.innerHTML}${tagType.startTag}`;
   } else if (
-    closestAnteriorTag.startOrEndTag === tagType.startTag &&
-    firstInnerTag.startOrEndTag === tagType.endTag &&
-    lastInnerTag.startOrEndTag == tagType.endTag
+    // Extends the end of an already stylized section to the end of the selection
+    closestAnteriorTag === tagType.startTag &&
+    firstInnerTag === tagType.endTag &&
+    lastInnerTag == tagType.endTag
   ) {
     selectionIHO.innerHTML = removeTags(selectionIHO.innerHTML, tagType);
     return `${selectionIHO.innerHTML}${tagType.endTag}`;
   } else if (
-    firstInnerTag.startOrEndTag === tagType.startTag &&
-    lastInnerTag.startOrEndTag == tagType.startTag &&
-    closestPosteriorTag.startOrEndTag === tagType.endTag
+    // Extends the end of an already stylized section to the beginning of the selection
+    firstInnerTag === tagType.startTag &&
+    lastInnerTag === tagType.startTag &&
+    closestPosteriorTag === tagType.endTag
   ) {
     selectionIHO.innerHTML = removeTags(selectionIHO.innerHTML, tagType);
     return `${tagType.startTag}${selectionIHO.innerHTML}`;
   } else {
+    // Stylizes the selection as normal by putting start and end tags around it
     selectionIHO.innerHTML = removeTags(selectionIHO.innerHTML, tagType);
     return `${tagType.startTag}${selectionIHO.innerHTML}${tagType.endTag}`;
   }
@@ -499,11 +489,6 @@ const updateCurrentState = () => {
 
 const wroteWord = (keyPressed) => {
   return keyPressed === " " && keyTypeLog[keyTypeLog.length - 2] !== " ";
-};
-
-//this can be removed as it no longer has a purpose in current commit
-const carriageReturn = (keyPressed) => {
-  return keyPressed === "Enter";
 };
 
 const pastedOrDeletedDigits = (key) => {
