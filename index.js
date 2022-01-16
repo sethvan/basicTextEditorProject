@@ -8,6 +8,8 @@ const supBtn = document.querySelector("#sup-text");
 const undoBtn = document.querySelector("#undo");
 const redoBtn = document.querySelector("#redo");
 
+// For each saved state we save the entire innerHTML string for that state
+// and the index of the caret. This is why we are working on command pattern.
 const textBodyInnerHTMLStates = [
   {
     innerHTML: textBody.innerHTML,
@@ -21,8 +23,8 @@ const textBodyInnerHTMLStates = [
   },
 ];
 let currentStateIndex = 1;
-let spanNumber = 0;
-let useSpan = false;
+let spanNumber = 0; // for the id of each created span
+let useSpan = false; // see getSelectionInnerHTML() and keyup even listener
 preTag.innerText = textBody.innerHTML;
 let trend = true; //false = downwards trend and true = upwards trend
 let lengthIncrement = true; //false = downwards increment and true = upwards increment
@@ -30,6 +32,8 @@ const keyTypeLog = [""];
 const caretNodeLog = [{}];
 
 textBody.addEventListener("keyup", (e) => {
+  // if a newly created span was being focused before this key event, reset all the contenteditable attributes
+  // for all other spans (that along with textBody were temporarily set to false so as to focus the span) back to true now
   if (useSpan) {
     const spanList = document.querySelectorAll("span");
     for (let span of spanList) {
@@ -41,17 +45,23 @@ textBody.addEventListener("keyup", (e) => {
     useSpan = false;
   }
   if (textHasChanged()) {
+    // if text has changed since last pushed state
     keyTypeLog.push(`${e.key}`);
     caretNodeLog.push(getCaretNode());
+    // This is my arbitrary taste, basically means that if the last key before this one pushed was a carriage return
+    // do not push. This results in consecutive carriage returns being recorded as one change in state instead
+    // of multiple incremental changes.
     if (keyTypeLog[keyTypeLog.length - 2] === "Enter") {
       updateCurrentState();
     } else {
       if (
+        // The logic being used to decide whether to push the state or not when change in text content detected.
         !lastTwoAnchorNodesAreEqual(caretNodeLog) ||
         wroteWord(e.key) ||
         pastedOrDeletedDigits(e.key) ||
         hasChangedDirection(caretNodeLog)
       ) {
+        // If user has undone states and makes a change, delete all recorded states that came after that change.
         if (currentStateIndex < textBodyInnerHTMLStates.length - 1) {
           let difference =
             textBodyInnerHTMLStates.length - 1 - currentStateIndex;
@@ -70,8 +80,9 @@ textBody.addEventListener("keyup", (e) => {
 });
 
 underlineBtn.addEventListener("click", () => {
-  executeCMD(tag.underline);
+  executeCMD(tag.underline); // see executeCMD()
   if (useSpan) {
+    // If the btn was clicked without a selection, focus on span that was inserted
     document.querySelector(`#span${spanNumber}`).focus();
   }
 });
@@ -105,6 +116,7 @@ supBtn.addEventListener("click", () => {
 });
 
 undoBtn.addEventListener("click", () => {
+  // If undone back to beginning, make sure original saved state is blank
   if (currentStateIndex === 1) {
     if (
       textBodyInnerHTMLStates[currentStateIndex].innerHTML === "" &&
@@ -120,15 +132,21 @@ undoBtn.addEventListener("click", () => {
       });
       textBody.innerHTML = textBodyInnerHTMLStates[currentStateIndex].innerHTML;
       if (useSpan) {
+        // Edge case where undo was clicked right after having clicked a style button
         textBody.setAttribute("contenteditable", "true");
         useSpan = false;
       }
       textBody.focus();
     }
   } else {
+    // If not undone to beginning, set the innerHTML of textBody to mach string in saved state
     textBody.innerHTML = textBodyInnerHTMLStates[--currentStateIndex].innerHTML;
     const spanList = document.querySelectorAll("span");
     if (
+      // This indicates that the current state in question being reverted to was right after a style button
+      // was clicked without a selection made and the focus was on the inserted span. We therefore need to
+      // manually place focus again on the span to recreate the state, and set useSpan to true so that
+      // the code will know to revert the attributes back to true in the next keyup event.
       spanList.length > 1 &&
       document.querySelector(`#span1`).getAttribute("contentEditable") ===
         "false"
@@ -138,7 +156,8 @@ undoBtn.addEventListener("click", () => {
       useSpan = true;
       preTag.innerText = textBody.innerHTML;
       return;
-    }
+    } // Otherwise we are able to set the caret position to the index recorded in the state object using
+    // SetCaretPosition ( because it will not be in an empty child node ).
     SetCaretPosition(
       textBody,
       textBodyInnerHTMLStates[currentStateIndex].caretIndex
@@ -149,8 +168,11 @@ undoBtn.addEventListener("click", () => {
 });
 
 redoBtn.addEventListener("click", () => {
+  // If currently not at the most recently saved state, change to state that followed the current one
   if (textBodyInnerHTMLStates.length > currentStateIndex + 1) {
     textBody.innerHTML = textBodyInnerHTMLStates[++currentStateIndex].innerHTML;
+    // Just like with undo, check to see whether or not caret needs to be placed inside an empty span
+    //or set according to index of the innerText.
     const spanList = document.querySelectorAll("span");
     if (
       spanList.length > 1 &&
@@ -171,25 +193,25 @@ redoBtn.addEventListener("click", () => {
   }
 });
 
+// what happens when user clicks styling button
 const executeCMD = (tagType) => {
   try {
     const selection = document.getSelection();
 
-    if (!textBody.contains(selection.anchorNode)) return;
-    const selectionString = selection.toString();
-    const selectionRange = selection.getRangeAt(0);
-    //IHO = Inner HTML Object
-    const selectionIHO = getSelectionInnerHTML(
-      selection,
-      selectionRange,
-      textBody,
-      tagType
-    );
-    const newSelectionInnerHTML = getNewInnerHTML(
-      selectionIHO,
-      textBody,
-      tagType
-    );
+    if (!textBody.contains(selection.anchorNode)) return; // selection has to be inside textBody
+    const selectionString = selection.toString(); // will function as a boolean to indicate if text was selected or not
+
+    /*IHO = Inner HTML Object, function will return an object containing:
+    innerHTML = If there is a selection it returns the innerHTML of that selection, else it returns innerHTML 
+                containing a new span on which to insert and focus() where the caret was when button was clicked
+    index = The string index of the selection's innerHTML inside the textBody's innerHTML (not being used as of yet)
+    posteriorHTML = Portion of textBody's innerHTML that comes after the selection
+    posteriorIndex = The string index of the posteriorHTML (not being used as of yet)
+    anteriorHTML = Portion of textBody's innerHTML that comes before the selection
+    caretIndex = where caret is after click
+    */
+    const selectionIHO = getSelectionInnerHTML(selection, tagType);
+    const newSelectionInnerHTML = getNewInnerHTML(selectionIHO, tagType);
 
     textBody.innerHTML =
       selectionIHO.anteriorHTML +
@@ -218,7 +240,7 @@ const executeCMD = (tagType) => {
     }
     textBodyInnerHTMLStates[currentStateIndex].caretIndex =
       selectionIHO.caretIndex;
-    if (!selectionString) {
+    if (!selection.toString()) {
       updateCurrentState();
     } else {
       pushState();
@@ -231,15 +253,11 @@ const executeCMD = (tagType) => {
   }
 };
 
-const getSelectionInnerHTML = (
-  selection,
-  selectionRange,
-  textBody,
-  tagType
-) => {
+const getSelectionInnerHTML = (selection, textBody, tagType) => {
   try {
     const selectionString = selection.toString();
     const myDelimiter = `~${Math.floor(Math.random() * 1000000000000000)}`;
+    const selectionRange = selection.getRangeAt(0);
 
     if (selectionString) {
       const rangeToPlaceEnd = document.createRange();
