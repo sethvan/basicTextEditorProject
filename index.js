@@ -17,6 +17,7 @@ let currentStateText = "";
 
 textBody.addEventListener("keyup", (e) => {
   if (textHasChanged(textBody, lastStateText)) {
+    console.log(getCaretNode());
     keyTypeLog.push(`${e.key}`);
     caretNodeLog.push(getCaretNode());
 
