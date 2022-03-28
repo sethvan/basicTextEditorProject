@@ -19,6 +19,6 @@ endeavors,
 and this remains here waiting until more free time is available to spend on it.  
 
 Since this project was left in the middle, commit [4b13955](https://github.com/sethvan/basicTextEditorProject/tree/4b13955e3c94ce85db50019d3093ae7bb4fcb961) relating to the above app link is the commit that  
-actually displays the most rich text functionality AFAIK. The current branch commits do not display rich  
+actually displays the most rich text functionality. The current branch commits do not display rich  
 text functionality as of last update to this README. So to see the functionality achieved please click on  
 the app link as running the current branch commits will show nothing. 
