@@ -18,7 +18,5 @@ I came to realize my whole approach (though having worked thus far) was flawed i
 heavily on innerHTML manipulation. It was decided then that it would be best to start over from the beginning,  
 take the lessons learned and focus more on dom tree manipulation.  
 
-Unfortunately soon after, both [jg20019](https://github.com/jg20019) and myself found ourseleves occupied by more pressing
-endeavors,  
-and this remains here waiting until more free time is available to spend on it.  
+
 
